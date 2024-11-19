@@ -1,9 +1,9 @@
 package ru.flish1.testtaskpetshop.entity;
 
 import lombok.*;
+import ru.flish1.testtaskpetshop.enums.PetStatus;
 
 import java.util.List;
-import java.util.Map;
 import java.util.Objects;
 
 @Getter
@@ -18,7 +18,7 @@ public class Pet {
     private String name;
     private List<String> photoUrls;
     private List<Tag> tags;
-    private Status status;
+    private PetStatus status;
 
     @Override
     public boolean equals(Object o) {

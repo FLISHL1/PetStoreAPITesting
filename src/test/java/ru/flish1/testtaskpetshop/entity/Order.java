@@ -1,6 +1,7 @@
 package ru.flish1.testtaskpetshop.entity;
 
 import lombok.*;
+import ru.flish1.testtaskpetshop.enums.OrderStatus;
 
 @Getter
 @Setter
@@ -13,6 +14,6 @@ public class Order {
     private Long petId;
     private Integer quantity;
     private String shipDate;
-    private String status;
-    private Boolean completed;
+    private OrderStatus status;
+    private Boolean complete;
 }

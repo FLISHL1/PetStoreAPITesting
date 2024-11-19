@@ -12,6 +12,7 @@ import org.junit.jupiter.api.Test;
 import ru.flish1.testtaskpetshop.config.ApiProperty;
 import ru.flish1.testtaskpetshop.config.TestPathJsonSchemeConfig;
 import ru.flish1.testtaskpetshop.entity.*;
+import ru.flish1.testtaskpetshop.enums.PetStatus;
 
 import java.util.List;
 
@@ -65,7 +66,7 @@ public class TestApiCreatePet {
                 .photoUrls(List.of("testImage1", "testImage2"))
                 .category(category)
                 .tags(List.of(tag1, tag2))
-                .status(Status.available)
+                .status(PetStatus.available)
                 .build();
 
         Pet petResponse = RestAssured

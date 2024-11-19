@@ -9,13 +9,7 @@ import lombok.*;
 @ToString
 @NoArgsConstructor
 @AllArgsConstructor
-public class User {
-    private Long id;
+public class UserLogin {
     private String username;
-    private String firstName;
-    private String lastName;
-    private String email;
     private String password;
-    private String phone;
-    private Integer userStatus;
 }
