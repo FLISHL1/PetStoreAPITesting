@@ -1,0 +1,21 @@
+{
+  "$schema": "http://json-schema.org/draft-04/schema#",
+  "title": "Api Request",
+  "type": "object",
+  "properties": {
+    "code": {
+      "type": "integer"
+    },
+    "type": {
+      "type": "string"
+    },
+    "message": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "code",
+    "type",
+    "message"
+  ]
+}
