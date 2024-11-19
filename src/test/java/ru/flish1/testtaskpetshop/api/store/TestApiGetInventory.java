@@ -6,22 +6,23 @@ import io.restassured.RestAssured;
 import io.restassured.http.ContentType;
 import io.restassured.module.jsv.JsonSchemaValidator;
 import lombok.extern.slf4j.Slf4j;
+import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import ru.flish1.testtaskpetshop.config.ApiProperty;
 import ru.flish1.testtaskpetshop.config.TestPathJsonSchemeConfig;
-import ru.flish1.testtaskpetshop.entity.ApiResponse;
 import ru.flish1.testtaskpetshop.entity.Order;
+
+import java.util.Map;
 
 import static com.github.fge.jsonschema.SchemaVersion.DRAFTV4;
 import static io.restassured.module.jsv.JsonSchemaValidator.matchesJsonSchemaInClasspath;
 import static io.restassured.module.jsv.JsonSchemaValidatorSettings.settings;
-import static org.hamcrest.Matchers.equalToObject;
 
 @Slf4j
-public class TestApiGetOrder {
-    private final String baseUrlOrder = "/store/order/{orderId}";
+public class TestApiGetInventory {
+    private final String baseUrlInventory = "/store/inventory";
     private final TestPathJsonSchemeConfig jsonSchemeConfig = new TestPathJsonSchemeConfig();
     @BeforeEach
     public void init() {
@@ -41,44 +42,16 @@ public class TestApiGetOrder {
     }
 
     @Test
-    @DisplayName("Успешное получение заказа")
-    public void testGetOrderSuccessful() {
-        Long orderId = 10L;
-        Order orderResponse = RestAssured
+    @DisplayName("Получение инвентаря")
+    public void testGetInventorySuccessful() {
+        RestAssured
                 .given()
                 .contentType(ContentType.JSON)
-                .pathParam("orderId", orderId)
                 .when()
-                .get(baseUrlOrder)
+                .get(baseUrlInventory)
                 .then()
                 .log().all()
-                .body(matchesJsonSchemaInClasspath(jsonSchemeConfig.getPathJsonSchemeOrder()))
-                .statusCode(200)
-                .body("id", equalToObject(orderId.intValue()))
-                .extract()
-                .as(Order.class);
-        log.info(orderResponse.toString());
+                .body(matchesJsonSchemaInClasspath(jsonSchemeConfig.getPathJsonSchemeInventory()))
+                .statusCode(200);
     }
-
-    @Test
-    @DisplayName("Получение не существующего заказа")
-    public void testGetOrderIncorrect() {
-        Long orderId = 21434325314321L;
-
-
-        ApiResponse response = RestAssured
-                .given()
-                .contentType(ContentType.JSON)
-                .pathParam("orderId", orderId)
-                .when()
-                .get(baseUrlOrder)
-                .then()
-                .log().all()
-                .body(matchesJsonSchemaInClasspath(jsonSchemeConfig.getPathJsonSchemeApiResponse()))
-                .statusCode(404)
-                .extract()
-                .as(ApiResponse.class);
-        log.info(response.toString());
-    }
-
 }

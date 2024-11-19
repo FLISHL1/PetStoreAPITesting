@@ -10,23 +10,23 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import ru.flish1.testtaskpetshop.config.ApiProperty;
-import ru.flish1.testtaskpetshop.config.TestPathJsonSchemeConfig;
 import ru.flish1.testtaskpetshop.entity.ApiResponse;
 import ru.flish1.testtaskpetshop.entity.Order;
 
 import static com.github.fge.jsonschema.SchemaVersion.DRAFTV4;
-import static io.restassured.module.jsv.JsonSchemaValidator.matchesJsonSchemaInClasspath;
 import static io.restassured.module.jsv.JsonSchemaValidatorSettings.settings;
-import static org.hamcrest.Matchers.equalToObject;
 
 @Slf4j
-public class TestApiGetOrder {
-    private final String baseUrlOrder = "/store/order/{orderId}";
-    private final TestPathJsonSchemeConfig jsonSchemeConfig = new TestPathJsonSchemeConfig();
+public class TestApiDeleteOrder {
+    private final String baseUrlOrderDelete = "/store/order/{orderId}";
+    private final String baseUrlOrder = "/store/order";
+
     @BeforeEach
     public void init() {
+
         RestAssured.reset();
         RestAssured.baseURI = ApiProperty.getProperties("base_uri");
+
         JsonSchemaValidator.settings = settings()
                 .with()
                 .jsonSchemaFactory(
@@ -38,47 +38,57 @@ public class TestApiGetOrder {
                                         .freeze())
                                 .freeze()).
                 and().with().checkedValidation(false);
+
+        createDeletedOrder();
+    }
+
+    @BeforeEach
+    public void before(){
+        createDeletedOrder();
+    }
+
+    private void createDeletedOrder() {
+        Order order = Order.builder()
+                .id(123L)
+                .build();
+        RestAssured
+                .given()
+                .contentType(ContentType.JSON)
+                .body(order)
+                .when()
+                .post(baseUrlOrder)
+                .then()
+                .log().all()
+                .statusCode(200);
     }
 
     @Test
-    @DisplayName("Успешное получение заказа")
-    public void testGetOrderSuccessful() {
-        Long orderId = 10L;
-        Order orderResponse = RestAssured
+    @DisplayName("Успешное удаление заказа")
+    public void testDeleteOrderSuccessful() {
+        Long orderId = 123L;
+        RestAssured
                 .given()
                 .contentType(ContentType.JSON)
                 .pathParam("orderId", orderId)
                 .when()
-                .get(baseUrlOrder)
+                .delete(baseUrlOrderDelete)
                 .then()
                 .log().all()
-                .body(matchesJsonSchemaInClasspath(jsonSchemeConfig.getPathJsonSchemeOrder()))
-                .statusCode(200)
-                .body("id", equalToObject(orderId.intValue()))
-                .extract()
-                .as(Order.class);
-        log.info(orderResponse.toString());
+                .statusCode(200);
     }
 
     @Test
-    @DisplayName("Получение не существующего заказа")
-    public void testGetOrderIncorrect() {
-        Long orderId = 21434325314321L;
-
-
-        ApiResponse response = RestAssured
+    @DisplayName("Удаление не существующего заказа")
+    public void testDeleteOrderNotFound() {
+        Long orderId = 123L;
+        RestAssured
                 .given()
                 .contentType(ContentType.JSON)
                 .pathParam("orderId", orderId)
                 .when()
-                .get(baseUrlOrder)
+                .delete(baseUrlOrderDelete)
                 .then()
                 .log().all()
-                .body(matchesJsonSchemaInClasspath(jsonSchemeConfig.getPathJsonSchemeApiResponse()))
-                .statusCode(404)
-                .extract()
-                .as(ApiResponse.class);
-        log.info(response.toString());
+                .statusCode(404);
     }
-
 }

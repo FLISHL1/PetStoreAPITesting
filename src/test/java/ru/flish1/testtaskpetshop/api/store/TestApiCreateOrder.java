@@ -1,4 +1,4 @@
-package ru.flish1.testtaskpetshop.api.order;
+package ru.flish1.testtaskpetshop.api.store;
 
 import com.github.fge.jsonschema.cfg.ValidationConfiguration;
 import com.github.fge.jsonschema.main.JsonSchemaFactory;
@@ -8,6 +8,7 @@ import io.restassured.module.jsv.JsonSchemaValidator;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import ru.flish1.testtaskpetshop.config.ApiProperty;
 import ru.flish1.testtaskpetshop.config.TestPathJsonSchemeConfig;
@@ -42,12 +43,13 @@ public class TestApiCreateOrder {
     }
 
     @Test
+    @DisplayName("Cоздание корректного заказа")
     public void testCreateOrderSuccessful() {
         Order orderRequest = Order.builder()
                 .id(7878787878787L)
                 .petId(1L)
                 .quantity(1)
-                .shipDate("2005-01-06T15:02:51.516Z")
+                .shipDate("2005-01-06T15:02:51.516+0000")
                 .status(OrderStatus.placed)
                 .complete(true)
                 .build();
@@ -69,7 +71,8 @@ public class TestApiCreateOrder {
     }
 
     @Test
-    public void testCreatePetIncorrect() {
+    @DisplayName("Cоздание не корректного заказа")
+    public void testCreateOrderIncorrect() {
         Order orderRequest = Order.builder()
                 .id(7878787878787L)
                 .petId(1L)

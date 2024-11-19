@@ -1,4 +1,4 @@
-package ru.flish1.testtaskpetshop.api;
+package ru.flish1.testtaskpetshop.api.pet;
 
 import com.github.fge.jsonschema.cfg.ValidationConfiguration;
 import com.github.fge.jsonschema.main.JsonSchemaFactory;

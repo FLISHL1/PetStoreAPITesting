@@ -19,4 +19,8 @@ public class TestPathJsonSchemeConfig {
     public String getPathJsonSchemeUser() {
         return baseDir + JsonSchemeProperty.getProperties("file_user");
     }
+
+    public String getPathJsonSchemeInventory() {
+        return baseDir + JsonSchemeProperty.getProperties("file_inventory");
+    }
 }
