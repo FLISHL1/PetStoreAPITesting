@@ -10,12 +10,11 @@ import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.params.ParameterizedTest;
-import org.junit.jupiter.params.provider.ValueSource;
 import ru.flish1.testtaskpetshop.config.ApiProperty;
 import ru.flish1.testtaskpetshop.config.TestPathJsonSchemeConfig;
 import ru.flish1.testtaskpetshop.entity.ApiResponse;
 import ru.flish1.testtaskpetshop.entity.Order;
+import ru.flish1.testtaskpetshop.enums.CodeStatus;
 import ru.flish1.testtaskpetshop.enums.OrderStatus;
 
 import static com.github.fge.jsonschema.SchemaVersion.DRAFTV4;
@@ -25,7 +24,12 @@ import static org.hamcrest.Matchers.equalToObject;
 
 @Slf4j
 public class TestApiCreateOrder {
+    private final String shipDate = "2005-01-06T15:02:51.516+0000";
+    private final long petId = 1L;
+    private final int quantity = 1;
     private final String baseUrlOrder = "/store/order";
+    private final long incorrectOrderId = -123L;
+    private final long correctOrderId = 123L;
     private final TestPathJsonSchemeConfig jsonSchemeConfig = new TestPathJsonSchemeConfig();
     @BeforeEach
     public void init() {
@@ -45,18 +49,21 @@ public class TestApiCreateOrder {
     }
 
 
-    @ParameterizedTest
-    @ValueSource(longs = {7878787878787L})
-    @DisplayName("Cоздание корректного заказа")
-    public void testCreateOrderSuccessful(Long orderId) {
-        Order orderRequest = Order.builder()
-                .id(orderId)
-                .petId(1L)
-                .quantity(1)
-                .shipDate("2005-01-06T15:02:51.516+0000")
+    private Order getOrder(long correctOrderId, long petId, int quantity, String shipDate) {
+        return Order.builder()
+                .id(correctOrderId)
+                .petId(petId)
+                .quantity(quantity)
+                .shipDate(shipDate)
                 .status(OrderStatus.placed)
                 .complete(true)
                 .build();
+    }
+
+    @Test
+    @DisplayName("Cоздание корректного заказа")
+    public void testCreateOrderSuccessful() {
+        Order orderRequest = getOrder(correctOrderId, petId, quantity, shipDate);
 
         Order orderResponse = RestAssured
                 .given()
@@ -67,7 +74,7 @@ public class TestApiCreateOrder {
                 .then()
                 .log().all()
                 .body(matchesJsonSchemaInClasspath(jsonSchemeConfig.getPathJsonSchemeOrder()))
-                .statusCode(200)
+                .statusCode(CodeStatus.SUCCESS.getCode())
                 .extract()
                 .as(Order.class);
         Assertions.assertEquals(orderRequest, orderResponse);
@@ -77,14 +84,7 @@ public class TestApiCreateOrder {
     @Test
     @DisplayName("Cоздание не корректного заказа")
     public void testCreateOrderIncorrect() {
-        Order orderRequest = Order.builder()
-                .id(7878787878787L)
-                .petId(1L)
-                .quantity(-1)
-                .shipDate("2005-01-06T15:02:51.516Z")
-                .status(OrderStatus.placed)
-                .complete(true)
-                .build();
+        Order orderRequest = getIncorrectOrder();
 
 
         ApiResponse response = RestAssured
@@ -96,10 +96,14 @@ public class TestApiCreateOrder {
                 .then()
                 .log().all()
                 .body(matchesJsonSchemaInClasspath(jsonSchemeConfig.getPathJsonSchemeOrder()))
-                .statusCode(400)
-                .body("code", equalToObject(400))
+                .statusCode(CodeStatus.INVALID_ID.getCode())
+                .body("code", equalToObject(CodeStatus.INVALID_ID.getCode()))
                 .extract()
                 .as(ApiResponse.class);
         log.info(response.toString());
+    }
+
+    private Order getIncorrectOrder() {
+        return getOrder(correctOrderId, petId, -quantity, shipDate);
     }
 }

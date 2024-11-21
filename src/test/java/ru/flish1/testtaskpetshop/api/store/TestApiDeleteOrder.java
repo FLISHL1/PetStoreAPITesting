@@ -9,22 +9,22 @@ import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.params.ParameterizedTest;
-import org.junit.jupiter.params.provider.ValueSource;
 import ru.flish1.testtaskpetshop.config.ApiProperty;
 import ru.flish1.testtaskpetshop.entity.Order;
+import ru.flish1.testtaskpetshop.enums.CodeStatus;
 
 import static com.github.fge.jsonschema.SchemaVersion.DRAFTV4;
 import static io.restassured.module.jsv.JsonSchemaValidatorSettings.settings;
 
 @Slf4j
 public class TestApiDeleteOrder {
+    private final long correctOrderId = 123L;
+    private final long incorrectOrderId = -123L;
     private final String baseUrlOrderDelete = "/store/order/{orderId}";
     private final String baseUrlOrder = "/store/order";
 
     @BeforeEach
     public void init() {
-
         RestAssured.reset();
         RestAssured.baseURI = ApiProperty.getProperties("base_uri");
 
@@ -54,38 +54,36 @@ public class TestApiDeleteOrder {
                 .post(baseUrlOrder)
                 .then()
                 .log().all()
-                .statusCode(200);
+                .statusCode(CodeStatus.SUCCESS.getCode());
     }
 
-    @ParameterizedTest
-    @ValueSource(longs = {123L})
+    @Test
     @DisplayName("Успешное удаление заказа")
-    public void testDeleteOrderSuccessful(long orderId) {
-        createDeletedOrder(orderId);
+    public void testDeleteOrderSuccessful() {
+        createDeletedOrder(correctOrderId);
         RestAssured
                 .given()
                 .contentType(ContentType.JSON)
-                .pathParam("orderId", orderId)
+                .pathParam("orderId", correctOrderId)
                 .when()
                 .delete(baseUrlOrderDelete)
                 .then()
                 .log().all()
-                .statusCode(200);
+                .statusCode(CodeStatus.SUCCESS.getCode());
+        createDeletedOrder(correctOrderId);
     }
 
     @Test
     @DisplayName("Удаление не существующего заказа")
     public void testDeleteOrderNotFound() {
-
-        Long orderId = 123L;
         RestAssured
                 .given()
                 .contentType(ContentType.JSON)
-                .pathParam("orderId", orderId)
+                .pathParam("orderId", incorrectOrderId)
                 .when()
                 .delete(baseUrlOrderDelete)
                 .then()
                 .log().all()
-                .statusCode(404);
+                .statusCode(CodeStatus.NOT_FOUND.getCode());
     }
 }

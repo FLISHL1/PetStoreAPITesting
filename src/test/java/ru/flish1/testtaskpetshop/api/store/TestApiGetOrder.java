@@ -13,6 +13,7 @@ import ru.flish1.testtaskpetshop.config.ApiProperty;
 import ru.flish1.testtaskpetshop.config.TestPathJsonSchemeConfig;
 import ru.flish1.testtaskpetshop.entity.ApiResponse;
 import ru.flish1.testtaskpetshop.entity.Order;
+import ru.flish1.testtaskpetshop.enums.CodeStatus;
 
 import static com.github.fge.jsonschema.SchemaVersion.DRAFTV4;
 import static io.restassured.module.jsv.JsonSchemaValidator.matchesJsonSchemaInClasspath;
@@ -22,6 +23,8 @@ import static org.hamcrest.Matchers.equalToObject;
 @Slf4j
 public class TestApiGetOrder {
     private final String baseUrlOrder = "/store/order/{orderId}";
+    private final Long correctOrderId = 123L;
+    private final Long incorrectOrderId = -123L;
     private final TestPathJsonSchemeConfig jsonSchemeConfig = new TestPathJsonSchemeConfig();
     @BeforeEach
     public void init() {
@@ -43,18 +46,17 @@ public class TestApiGetOrder {
     @Test
     @DisplayName("Успешное получение заказа")
     public void testGetOrderSuccessful() {
-        Long orderId = 10L;
         Order orderResponse = RestAssured
                 .given()
                 .contentType(ContentType.JSON)
-                .pathParam("orderId", orderId)
+                .pathParam("orderId", correctOrderId)
                 .when()
                 .get(baseUrlOrder)
                 .then()
                 .log().all()
                 .body(matchesJsonSchemaInClasspath(jsonSchemeConfig.getPathJsonSchemeOrder()))
-                .statusCode(200)
-                .body("id", equalToObject(orderId.intValue()))
+                .statusCode(CodeStatus.SUCCESS.getCode())
+                .body("id", equalToObject(correctOrderId.intValue()))
                 .extract()
                 .as(Order.class);
         log.info(orderResponse.toString());
@@ -63,19 +65,16 @@ public class TestApiGetOrder {
     @Test
     @DisplayName("Получение не существующего заказа")
     public void testGetOrderIncorrect() {
-        Long orderId = 21434325314321L;
-
-
         ApiResponse response = RestAssured
                 .given()
                 .contentType(ContentType.JSON)
-                .pathParam("orderId", orderId)
+                .pathParam("orderId", incorrectOrderId)
                 .when()
                 .get(baseUrlOrder)
                 .then()
                 .log().all()
                 .body(matchesJsonSchemaInClasspath(jsonSchemeConfig.getPathJsonSchemeApiResponse()))
-                .statusCode(404)
+                .statusCode(CodeStatus.NOT_FOUND.getCode())
                 .extract()
                 .as(ApiResponse.class);
         log.info(response.toString());

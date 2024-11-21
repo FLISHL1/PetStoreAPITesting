@@ -6,15 +6,12 @@ import io.restassured.RestAssured;
 import io.restassured.http.ContentType;
 import io.restassured.module.jsv.JsonSchemaValidator;
 import lombok.extern.slf4j.Slf4j;
-import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import ru.flish1.testtaskpetshop.config.ApiProperty;
 import ru.flish1.testtaskpetshop.config.TestPathJsonSchemeConfig;
-import ru.flish1.testtaskpetshop.entity.Order;
-
-import java.util.Map;
+import ru.flish1.testtaskpetshop.enums.CodeStatus;
 
 import static com.github.fge.jsonschema.SchemaVersion.DRAFTV4;
 import static io.restassured.module.jsv.JsonSchemaValidator.matchesJsonSchemaInClasspath;
@@ -52,6 +49,6 @@ public class TestApiGetInventory {
                 .then()
                 .log().all()
                 .body(matchesJsonSchemaInClasspath(jsonSchemeConfig.getPathJsonSchemeInventory()))
-                .statusCode(200);
+                .statusCode(CodeStatus.SUCCESS.getCode());
     }
 }
