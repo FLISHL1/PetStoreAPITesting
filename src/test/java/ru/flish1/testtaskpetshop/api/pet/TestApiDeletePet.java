@@ -1,26 +1,25 @@
-package ru.flish1.testtaskpetshop.api.store;
+package ru.flish1.testtaskpetshop.api.pet;
 
 import com.github.fge.jsonschema.cfg.ValidationConfiguration;
 import com.github.fge.jsonschema.main.JsonSchemaFactory;
 import io.restassured.RestAssured;
 import io.restassured.http.ContentType;
 import io.restassured.module.jsv.JsonSchemaValidator;
-import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.params.ParameterizedTest;
-import org.junit.jupiter.params.provider.ValueSource;
 import ru.flish1.testtaskpetshop.config.ApiProperty;
 import ru.flish1.testtaskpetshop.entity.Order;
+import ru.flish1.testtaskpetshop.enums.CodeStatus;
 
 import static com.github.fge.jsonschema.SchemaVersion.DRAFTV4;
 import static io.restassured.module.jsv.JsonSchemaValidatorSettings.settings;
 
-@Slf4j
-public class TestApiDeleteOrder {
-    private final String baseUrlOrderDelete = "/store/order/{orderId}";
-    private final String baseUrlOrder = "/store/order";
+public class TestApiDeletePet {
+    private final String baseUrlPetDelete = "/pet/{petId}";
+    private final String baseUrlPet = "/pet";
+    private final Long unknownPetId = -123L;
+    private final Long correctPetId = 123L;
 
     @BeforeEach
     public void init() {
@@ -42,50 +41,48 @@ public class TestApiDeleteOrder {
 
     }
 
-    private void createDeletedOrder(long orderId) {
+    private void createDeletedPet(long petId) {
         Order order = Order.builder()
-                .id(orderId)
+                .id(petId)
                 .build();
         RestAssured
                 .given()
                 .contentType(ContentType.JSON)
                 .body(order)
                 .when()
-                .post(baseUrlOrder)
+                .post(baseUrlPet)
                 .then()
                 .log().all()
-                .statusCode(200);
-    }
-
-    @ParameterizedTest
-    @ValueSource(longs = {123L})
-    @DisplayName("Успешное удаление заказа")
-    public void testDeleteOrderSuccessful(long orderId) {
-        createDeletedOrder(orderId);
-        RestAssured
-                .given()
-                .contentType(ContentType.JSON)
-                .pathParam("orderId", orderId)
-                .when()
-                .delete(baseUrlOrderDelete)
-                .then()
-                .log().all()
-                .statusCode(200);
+                .statusCode(CodeStatus.SUCCESS.getCode());
     }
 
     @Test
-    @DisplayName("Удаление не существующего заказа")
-    public void testDeleteOrderNotFound() {
-
-        Long orderId = 123L;
+    @DisplayName("Успешное удаление питомца")
+    public void testDeletePetSuccessful() {
+        createDeletedPet(correctPetId);
         RestAssured
                 .given()
                 .contentType(ContentType.JSON)
-                .pathParam("orderId", orderId)
+                .pathParam("petId", correctPetId)
                 .when()
-                .delete(baseUrlOrderDelete)
+                .delete(baseUrlPetDelete)
                 .then()
                 .log().all()
-                .statusCode(404);
+                .statusCode(CodeStatus.SUCCESS.getCode());
+    }
+
+    @Test
+    @DisplayName("Удаление не существующего питомца")
+    public void testDeletePetNotFound() {
+
+        RestAssured
+                .given()
+                .contentType(ContentType.JSON)
+                .pathParam("petId", unknownPetId)
+                .when()
+                .delete(baseUrlPetDelete)
+                .then()
+                .log().all()
+                .statusCode(CodeStatus.NOT_FOUND.getCode());
     }
 }

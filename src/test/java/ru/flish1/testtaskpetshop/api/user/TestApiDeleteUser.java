@@ -9,6 +9,8 @@ import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
 import ru.flish1.testtaskpetshop.config.ApiProperty;
 import ru.flish1.testtaskpetshop.entity.ApiResponse;
 import ru.flish1.testtaskpetshop.entity.User;
@@ -40,17 +42,12 @@ public class TestApiDeleteUser {
                                 .freeze()).
                 and().with().checkedValidation(false);
 
-        createDeletedUser();
     }
 
-    @BeforeEach
-    public void before(){
-        createDeletedUser();
-    }
 
-    private void createDeletedUser() {
+    private void createDeletedUser(String username) {
         User user = User.builder()
-                .username("user1")
+                .username(username)
                 .build();
         RestAssured
                 .given()
@@ -65,10 +62,11 @@ public class TestApiDeleteUser {
                 .as(ApiResponse.class);
     }
 
-    @Test
+    @ParameterizedTest
+    @ValueSource(strings = {"user1"})
     @DisplayName("Успешное удаление пользователя")
-    public void testDeleteUserSuccessful() {
-        String username = "user1";
+    public void testDeleteUserSuccessful(String username) {
+        createDeletedUser(username);
         RestAssured
                 .given()
                 .contentType(ContentType.JSON)

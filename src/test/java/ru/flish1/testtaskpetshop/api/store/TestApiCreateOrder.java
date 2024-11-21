@@ -10,16 +10,18 @@ import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
 import ru.flish1.testtaskpetshop.config.ApiProperty;
 import ru.flish1.testtaskpetshop.config.TestPathJsonSchemeConfig;
-import ru.flish1.testtaskpetshop.entity.*;
+import ru.flish1.testtaskpetshop.entity.ApiResponse;
+import ru.flish1.testtaskpetshop.entity.Order;
 import ru.flish1.testtaskpetshop.enums.OrderStatus;
 
 import static com.github.fge.jsonschema.SchemaVersion.DRAFTV4;
 import static io.restassured.module.jsv.JsonSchemaValidator.matchesJsonSchemaInClasspath;
 import static io.restassured.module.jsv.JsonSchemaValidatorSettings.settings;
 import static org.hamcrest.Matchers.equalToObject;
-import static org.hamcrest.Matchers.notNullValue;
 
 @Slf4j
 public class TestApiCreateOrder {
@@ -42,11 +44,13 @@ public class TestApiCreateOrder {
                 and().with().checkedValidation(false);
     }
 
-    @Test
+
+    @ParameterizedTest
+    @ValueSource(longs = {7878787878787L})
     @DisplayName("Cоздание корректного заказа")
-    public void testCreateOrderSuccessful() {
+    public void testCreateOrderSuccessful(Long orderId) {
         Order orderRequest = Order.builder()
-                .id(7878787878787L)
+                .id(orderId)
                 .petId(1L)
                 .quantity(1)
                 .shipDate("2005-01-06T15:02:51.516+0000")

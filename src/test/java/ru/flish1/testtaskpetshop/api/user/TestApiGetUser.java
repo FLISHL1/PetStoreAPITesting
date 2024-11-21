@@ -9,11 +9,12 @@ import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
 import ru.flish1.testtaskpetshop.config.ApiProperty;
 import ru.flish1.testtaskpetshop.config.TestPathJsonSchemeConfig;
 import ru.flish1.testtaskpetshop.entity.ApiResponse;
 import ru.flish1.testtaskpetshop.entity.User;
-import ru.flish1.testtaskpetshop.entity.UserLogin;
 
 import static com.github.fge.jsonschema.SchemaVersion.DRAFTV4;
 import static io.restassured.module.jsv.JsonSchemaValidator.matchesJsonSchemaInClasspath;
@@ -23,6 +24,7 @@ import static org.hamcrest.Matchers.*;
 @Slf4j
 public class TestApiGetUser {
     private final String baseUrlUserGet = "/user/{username}";
+    private final String baseUrlUser = "/user";
     private final TestPathJsonSchemeConfig pathJsonSchemeConfig = new TestPathJsonSchemeConfig();
 
     @BeforeEach
@@ -44,10 +46,28 @@ public class TestApiGetUser {
                 and().with().checkedValidation(false);
     }
 
-    @Test
+    private void createGetUser(String username) {
+        User user = User.builder()
+                .username(username)
+                .build();
+        RestAssured
+                .given()
+                .contentType(ContentType.JSON)
+                .body(user)
+                .when()
+                .post(baseUrlUser)
+                .then()
+                .log().all()
+                .statusCode(200)
+                .extract()
+                .as(ApiResponse.class);
+    }
+
+    @ParameterizedTest
+    @ValueSource(strings = {"user1"})
     @DisplayName("Успешное получение пользователя")
-    public void testGetUserSuccessful() {
-        String username = "user1";
+    public void testGetUserSuccessful(String username) {
+        createGetUser(username);
         User userResponse = RestAssured
                 .given()
                 .contentType(ContentType.JSON)
