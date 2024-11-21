@@ -13,6 +13,7 @@ import ru.flish1.testtaskpetshop.config.ApiProperty;
 import ru.flish1.testtaskpetshop.config.TestPathJsonSchemeConfig;
 import ru.flish1.testtaskpetshop.entity.ApiResponse;
 import ru.flish1.testtaskpetshop.entity.User;
+import ru.flish1.testtaskpetshop.enums.CodeStatus;
 
 import static com.github.fge.jsonschema.SchemaVersion.DRAFTV4;
 import static io.restassured.module.jsv.JsonSchemaValidator.matchesJsonSchemaInClasspath;
@@ -22,14 +23,15 @@ import static org.hamcrest.Matchers.notNullValue;
 
 @Slf4j
 public class TestApiCreateUser {
+    private final long correctUserId = 123L;
+    private final long repeatedUserId = 1234L;
+    private final int correctUserStatus = -17771223;
     private final String baseUrlUser = "/user";
     private final TestPathJsonSchemeConfig pathJsonSchemeConfig = new TestPathJsonSchemeConfig();
     @BeforeEach
     public void init() {
-
         RestAssured.reset();
         RestAssured.baseURI = ApiProperty.getProperties("base_uri");
-
         JsonSchemaValidator.settings = settings()
                 .with()
                 .jsonSchemaFactory(
@@ -46,17 +48,7 @@ public class TestApiCreateUser {
     @Test
     @DisplayName("Создание пользователя с указанием id")
     public void testCreateUserSuccessfulWithId() {
-
-
-        User user = User.builder()
-                .id(14282420L)
-                .username("testUser")
-                .firstName("testFirstName")
-                .lastName("testLastName")
-                .email("test@gmail.com")
-                .phone("89604707981")
-                .userStatus(-17771223)
-                .build();
+        User user = getCorrectUser(correctUserId);
 
         ApiResponse apiResponse = RestAssured
                 .given()
@@ -66,9 +58,9 @@ public class TestApiCreateUser {
                 .post(baseUrlUser)
                 .then()
                 .log().all()
-                .statusCode(200)
+                .statusCode(CodeStatus.SUCCESS.getCode())
                 .body(matchesJsonSchemaInClasspath(pathJsonSchemeConfig.getPathJsonSchemeApiResponse()))
-                .body("code", equalToObject(200))
+                .body("code", equalToObject(CodeStatus.SUCCESS.getCode()))
                 .body("type", equalToObject("unknown"))
                 .body("message", equalToObject(String.valueOf(user.getId())))
                 .extract()
@@ -76,19 +68,26 @@ public class TestApiCreateUser {
         log.info(apiResponse.toString());
     }
 
-    @Test
-    @DisplayName("Создание пользователя без указания")
-    public void testCreateUserSuccessfulNoId() {
-        User user = User.builder()
-                .id(null)
+    private User getCorrectUser(Long userId) {
+        return User.builder()
+                .id(userId)
                 .username("testUser")
                 .firstName("testFirstName")
                 .lastName("testLastName")
-                .password("testPassword")
                 .email("test@gmail.com")
                 .phone("89604707981")
-                .userStatus(-17771223)
+                .userStatus(correctUserStatus)
                 .build();
+    }
+
+    private User getUserNoId() {
+        return getCorrectUser(null);
+    }
+
+    @Test
+    @DisplayName("Создание пользователя без указания")
+    public void testCreateUserSuccessfulNoId() {
+        User user = getUserNoId();
 
         ApiResponse apiResponse = RestAssured
                 .given()
@@ -98,9 +97,9 @@ public class TestApiCreateUser {
                 .post(baseUrlUser)
                 .then()
                 .log().all()
-                .statusCode(200)
+                .statusCode(CodeStatus.SUCCESS.getCode())
                 .body(matchesJsonSchemaInClasspath(pathJsonSchemeConfig.getPathJsonSchemeApiResponse()))
-                .body("code", equalToObject(200))
+                .body("code", equalToObject(CodeStatus.SUCCESS.getCode()))
                 .body("type", equalToObject("unknown"))
                 .body("message", notNullValue())
                 .extract()
@@ -111,17 +110,7 @@ public class TestApiCreateUser {
     @Test
     @DisplayName("Создание существующего пользователя")
     public void testCreateRepeatableUserIncorrect() {
-        User user = User.builder()
-                .id(1L)
-                .username("testUser")
-                .firstName("testFirstName")
-                .lastName("testLastName")
-                .email("test@gmail.com")
-                .password("testPassword")
-                .phone("89604707981")
-                .userStatus(-17771223)
-                .build();
-
+        User user = getCorrectUser(repeatedUserId);
         ApiResponse apiResponse = RestAssured
                 .given()
                 .contentType(ContentType.JSON)
@@ -130,9 +119,9 @@ public class TestApiCreateUser {
                 .post(baseUrlUser)
                 .then()
                 .log().all()
-                .statusCode(200)
+                .statusCode(CodeStatus.SUCCESS.getCode())
                 .body(matchesJsonSchemaInClasspath(pathJsonSchemeConfig.getPathJsonSchemeApiResponse()))
-                .body("code", equalToObject(200))
+                .body("code", equalToObject(CodeStatus.SUCCESS.getCode()))
                 .body("type", equalToObject("unknown"))
                 .body("message", notNullValue())
                 .extract()
@@ -147,9 +136,9 @@ public class TestApiCreateUser {
                 .post(baseUrlUser)
                 .then()
                 .log().all()
-                .statusCode(400)
+                .statusCode(CodeStatus.INVALID_ID.getCode())
                 .body(matchesJsonSchemaInClasspath(pathJsonSchemeConfig.getPathJsonSchemeApiResponse()))
-                .body("code", equalToObject(400))
+                .body("code", equalToObject(CodeStatus.INVALID_ID.getCode()))
                 .body("type", equalToObject("unknown"))
                 .body("message", notNullValue())
                 .extract()

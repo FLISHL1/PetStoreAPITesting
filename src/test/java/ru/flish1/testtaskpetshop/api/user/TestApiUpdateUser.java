@@ -13,6 +13,7 @@ import ru.flish1.testtaskpetshop.config.ApiProperty;
 import ru.flish1.testtaskpetshop.config.TestPathJsonSchemeConfig;
 import ru.flish1.testtaskpetshop.entity.ApiResponse;
 import ru.flish1.testtaskpetshop.entity.User;
+import ru.flish1.testtaskpetshop.enums.CodeStatus;
 
 import static com.github.fge.jsonschema.SchemaVersion.DRAFTV4;
 import static io.restassured.module.jsv.JsonSchemaValidator.matchesJsonSchemaInClasspath;
@@ -20,6 +21,9 @@ import static io.restassured.module.jsv.JsonSchemaValidatorSettings.settings;
 
 @Slf4j
 public class TestApiUpdateUser {
+    private static final String updateUsername = "user1";
+    private static final String notFoundUsername = "unknown";
+    private static final String incorrectUsername = "unkno!e._)(\\wn";
     private final String baseUrlUserGet = "/user/{username}";
     private final TestPathJsonSchemeConfig pathJsonSchemeConfig = new TestPathJsonSchemeConfig();
 
@@ -45,29 +49,18 @@ public class TestApiUpdateUser {
     @Test
     @DisplayName("Успешное обновление пользователя")
     public void testUpdateUserSuccessful() {
-        String username = "user1";
-
-        User user = User.builder()
-                .id(1L)
-                .username("user1")
-                .firstName("testFirstName")
-                .lastName("testLastName")
-                .email("test@gmail.com")
-                .password("testPassword")
-                .phone("89604707981")
-                .userStatus(-17771223)
-                .build();
+        User user = getUser("user1");
 
         ApiResponse apiResponse = RestAssured
                 .given()
                 .contentType(ContentType.JSON)
-                .pathParam("username", username)
+                .pathParam("username", updateUsername)
                 .body(user)
                 .when()
                 .put(baseUrlUserGet)
                 .then()
                 .log().all()
-                .statusCode(200)
+                .statusCode(CodeStatus.SUCCESS.getCode())
                 .body(matchesJsonSchemaInClasspath(pathJsonSchemeConfig.getPathJsonSchemeApiResponse()))
                 .extract()
                 .as(ApiResponse.class);
@@ -77,29 +70,18 @@ public class TestApiUpdateUser {
     @Test
     @DisplayName("Обновление не существующего пользователя")
     public void testGetUserNotFound() {
-        String username = "unknown";
-
-        User user = User.builder()
-                .id(1L)
-                .username("testUser")
-                .firstName("testFirstName")
-                .lastName("testLastName")
-                .email("test@gmail.com")
-                .password("testPassword")
-                .phone("89604707981")
-                .userStatus(-17771223)
-                .build();
+        User user = getUser("testUser");
 
         ApiResponse apiResponse = RestAssured
                 .given()
                 .contentType(ContentType.JSON)
-                .pathParam("username", username)
+                .pathParam("username", notFoundUsername)
                 .body(user)
                 .when()
                 .get(baseUrlUserGet)
                 .then()
                 .log().all()
-                .statusCode(404)
+                .statusCode(CodeStatus.NOT_FOUND.getCode())
                 .body(matchesJsonSchemaInClasspath(pathJsonSchemeConfig.getPathJsonSchemeApiResponse()))
                 .extract()
                 .as(ApiResponse.class);
@@ -109,10 +91,28 @@ public class TestApiUpdateUser {
     @Test
     @DisplayName("Обновление пользователя с некорректным именем")
     public void testGetUserIncorrectUsername() {
-        String username = "unkno!e._)(\\wn";
+        User user = getUser("testUser");
+
+        ApiResponse apiResponse = RestAssured
+                .given()
+                .contentType(ContentType.JSON)
+                .pathParam("username", incorrectUsername)
+                .body(user)
+                .when()
+                .get(baseUrlUserGet)
+                .then()
+                .log().all()
+                .statusCode(CodeStatus.INVALID_ID.getCode())
+                .body(matchesJsonSchemaInClasspath(pathJsonSchemeConfig.getPathJsonSchemeApiResponse()))
+                .extract()
+                .as(ApiResponse.class);
+        log.info(apiResponse.toString());
+    }
+
+    private User getUser(String username) {
         User user = User.builder()
                 .id(1L)
-                .username("testUser")
+                .username(username)
                 .firstName("testFirstName")
                 .lastName("testLastName")
                 .email("test@gmail.com")
@@ -120,21 +120,7 @@ public class TestApiUpdateUser {
                 .phone("89604707981")
                 .userStatus(-17771223)
                 .build();
-
-        ApiResponse apiResponse = RestAssured
-                .given()
-                .contentType(ContentType.JSON)
-                .pathParam("username", username)
-                .body(user)
-                .when()
-                .get(baseUrlUserGet)
-                .then()
-                .log().all()
-                .statusCode(400)
-                .body(matchesJsonSchemaInClasspath(pathJsonSchemeConfig.getPathJsonSchemeApiResponse()))
-                .extract()
-                .as(ApiResponse.class);
-        log.info(apiResponse.toString());
+        return user;
     }
 
 }

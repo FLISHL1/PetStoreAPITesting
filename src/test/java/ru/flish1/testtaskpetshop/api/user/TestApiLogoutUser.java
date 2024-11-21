@@ -12,6 +12,7 @@ import org.junit.jupiter.api.Test;
 import ru.flish1.testtaskpetshop.config.ApiProperty;
 import ru.flish1.testtaskpetshop.config.TestPathJsonSchemeConfig;
 import ru.flish1.testtaskpetshop.entity.ApiResponse;
+import ru.flish1.testtaskpetshop.enums.CodeStatus;
 
 import static com.github.fge.jsonschema.SchemaVersion.DRAFTV4;
 import static io.restassured.module.jsv.JsonSchemaValidator.matchesJsonSchemaInClasspath;
@@ -26,10 +27,8 @@ public class TestApiLogoutUser {
 
     @BeforeEach
     public void init() {
-
         RestAssured.reset();
         RestAssured.baseURI = ApiProperty.getProperties("base_uri");
-
         JsonSchemaValidator.settings = settings()
                 .with()
                 .jsonSchemaFactory(
@@ -45,7 +44,7 @@ public class TestApiLogoutUser {
 
     @Test
     @DisplayName("Успешная выход")
-    public void testLoginUserSuccessful() {
+    public void testLogoutUserSuccessful() {
         ApiResponse apiResponse = RestAssured
                 .given()
                 .contentType(ContentType.JSON)
@@ -53,9 +52,9 @@ public class TestApiLogoutUser {
                 .get(baseUrlUserLogout)
                 .then()
                 .log().all()
-                .statusCode(200)
+                .statusCode(CodeStatus.SUCCESS.getCode())
                 .body(matchesJsonSchemaInClasspath(pathJsonSchemeConfig.getPathJsonSchemeApiResponse()))
-                .body("code", equalToObject(200))
+                .body("code", equalToObject(CodeStatus.SUCCESS.getCode()))
                 .body("type", equalToObject("unknown"))
                 .body("message", notNullValue())
                 .extract()

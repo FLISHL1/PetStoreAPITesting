@@ -9,27 +9,24 @@ import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.params.ParameterizedTest;
-import org.junit.jupiter.params.provider.ValueSource;
 import ru.flish1.testtaskpetshop.config.ApiProperty;
-import ru.flish1.testtaskpetshop.entity.ApiResponse;
 import ru.flish1.testtaskpetshop.entity.User;
+import ru.flish1.testtaskpetshop.enums.CodeStatus;
 
 import static com.github.fge.jsonschema.SchemaVersion.DRAFTV4;
 import static io.restassured.module.jsv.JsonSchemaValidatorSettings.settings;
-import static org.hamcrest.Matchers.notNullValue;
 
 @Slf4j
 public class TestApiDeleteUser {
     private final String baseUrlUserDelete = "/user/{username}";
+    private final String incorrectUsername = "unkno!e._)(\\wn";
+    private final String correctUsername = "user1";
     private final String baseUrlUser = "/user";
 
     @BeforeEach
     public void init() {
-
         RestAssured.reset();
         RestAssured.baseURI = ApiProperty.getProperties("base_uri");
-
         JsonSchemaValidator.settings = settings()
                 .with()
                 .jsonSchemaFactory(
@@ -57,25 +54,23 @@ public class TestApiDeleteUser {
                 .post(baseUrlUser)
                 .then()
                 .log().all()
-                .statusCode(200)
-                .extract()
-                .as(ApiResponse.class);
+                .statusCode(CodeStatus.SUCCESS.getCode())
+                .extract();
     }
 
-    @ParameterizedTest
-    @ValueSource(strings = {"user1"})
+    @Test
     @DisplayName("Успешное удаление пользователя")
-    public void testDeleteUserSuccessful(String username) {
-        createDeletedUser(username);
+    public void testDeleteUserSuccessful() {
+        createDeletedUser(correctUsername);
         RestAssured
                 .given()
                 .contentType(ContentType.JSON)
-                .pathParam("username", username)
+                .pathParam("username", correctUsername)
                 .when()
                 .delete(baseUrlUserDelete)
                 .then()
                 .log().all()
-                .statusCode(200);
+                .statusCode(CodeStatus.SUCCESS.getCode());
     }
 
     @Test
@@ -90,22 +85,21 @@ public class TestApiDeleteUser {
                 .delete(baseUrlUserDelete)
                 .then()
                 .log().all()
-                .statusCode(404);
+                .statusCode(CodeStatus.NOT_FOUND.getCode());
     }
 
     @Test
     @DisplayName("Удаление пользователя с некорректным именем")
     public void testDeleteUserIncorrectUsername() {
-        String username = "unkno!e._)(\\wn";
         RestAssured
                 .given()
                 .contentType(ContentType.JSON)
-                .pathParam("username", username)
+                .pathParam("username", incorrectUsername)
                 .when()
                 .delete(baseUrlUserDelete)
                 .then()
                 .log().all()
-                .statusCode(400);
+                .statusCode(CodeStatus.INVALID_ID.getCode());
     }
 
 }
